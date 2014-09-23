@@ -1,20 +1,49 @@
-var sceneStyle = {  
-  "colorScheme"       : ["#ADA386", "#825F43", "#5F8076", "#402B1A"],
-  "maxBuildings"      : 20,
-  "minBuildings"      : 10,
-  "minBuildingWidth"  : 50,
-  "numPoints"         : 50,
-  "minBuildingHeight" : 50,
-  "maxBuildingHeight" : 300,
+var backGroundLayer = {
   'bgColorOne'        : "#443322",
   'bgColorTwo'        : "#613d30",
   'cloudWidth'        : [50, 200],
   'cloudHeight'       : [20, 100],
+  'cloudColor'        : ["#876448"],
   'numClouds'         : [1, 10],
+}
+
+var sceneStyleLayer1 = {  
+  "colorScheme"       : ["#ADA386", "#825F43", "#5F8076", "#402B1A", /*blue*/ "#3c3957", /*rust*/ "#92432b", /*olive*/ "#57633e"],
+  "maxBuildings"      : 30,
+  "minBuildings"      : 20,
+  "minBuildingWidth"  : 50,
+  "maxBuildingWidth"  : 300,
+  "numPoints"         : 50,
+  "minBuildingHeight" : 90,
+  "maxBuildingHeight" : 600,
+}
+
+var sceneStyleLayer2 = {  
+  "colorScheme"       : ["#ADA386", "#825F43", "#5F8076", "#402B1A", /*blue*/ "#3c3957", /*rust*/ "#92432b", /*olive*/ "#57633e"],
+  "maxBuildings"      : 40,
+  "minBuildings"      : 20,
+  "minBuildingWidth"  : 30,
+  "maxBuildingWidth"  : 300,
+  "minBuildingHeight" : 50,
+  "maxBuildingHeight" : 300,
+}
+
+var sceneStyleLayer3 = {  
+  "colorScheme"       : ["#ADA386", "#825F43", "#5F8076", "#402B1A", /*blue*/ "#3c3957", /*rust*/ "#92432b", /*olive*/ "#57633e"],
+  "maxBuildings"      : 50,
+  "minBuildings"      : 40,
+  "minBuildingWidth"  : 30,
+  "maxBuildingWidth"  : 200,
+  "minBuildingHeight" : 30,
+  "maxBuildingHeight" : 50,
 }
 
 function getRandInt(lower, upper) {
   return Math.floor((Math.random() * upper) + lower);
+}
+
+function getRandArrayElem(array) {
+  return array[Math.floor((Math.random() * array.length))];
 }
 
 // drawEllipse function taken from http://www.williammalone.com/briefs/how-to-draw-ellipse-html5-canvas/
@@ -57,15 +86,20 @@ function BackGround(x, y, z, width, scheme) {
     context.fillStyle = style;
     //this.drawClouds(context);
   }
+ 
 
   this.drawClouds = function(context) {
     var x = getRandInt(this.scheme['cloudWidth'][1], context.canvas.width - this.scheme['cloudWidth'][1]);
     var y = getRandInt(this.scheme['cloudHeight'][1], context.canvas.width - this.scheme['cloudHeight'][1]);
     var w = getRandInt(this.scheme['cloudWidth'][0], this.scheme['cloudWidth'][1]);
     var h = getRandInt(this.scheme['cloudHeight'][0], this.scheme['cloudHeight'][1]);
+    drawEllipse(x, y, w, h, context, getRandArrayElem(this.scheme['cloudColor']));
   }
 }
 
+//A layer contains many buildings in roughly the same depth
+//Each layer may have its own color scheme
+//Changing a Layer's x or y will move the buildings with it
 function Layer(x, y, z, width, scheme) {
   this.z = z;
   this.width = width;
@@ -86,6 +120,20 @@ function Layer(x, y, z, width, scheme) {
   }
 
   this.populate = function() {
+    for (index = 0; index < this.scheme['maxBuildings']; ++index) {
+      this.addBuilding(new Building(
+            getRandInt(this.x, this.width),
+            getRandInt(this.scheme['minBuildingWidth'], this.scheme['maxBuildingWidth']), 
+            getRandInt(this.scheme['minBuildingHeight'], this.scheme['maxBuildingHeight']), 
+            getRandArrayElem(this.scheme['colorScheme'])
+      ));
+      if (index > this.scheme['minBuildings']) {
+        if (getRandInt(1,4) > 3) return;
+      }
+    }
+  }
+
+  this.populateSameDepth = function() {
     var index;
     var points = new Array();
     for (index = 0; index < this.scheme['numPoints']; ++index) {
@@ -112,6 +160,7 @@ function Layer(x, y, z, width, scheme) {
 
 }
 
+//A building represents all of the details associated with a single building
 function Building(x, width, height, color) {
   this.x_loc = x;
   this.width_loc = width;
@@ -127,6 +176,7 @@ function Building(x, width, height, color) {
   }
 }
 
+//A scene holds and renders layers. The layers are rendered in the order they were added
 function Scene(canvas) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -134,10 +184,15 @@ function Scene(canvas) {
   this.context = canvas.getContext('2d');
   this.width = canvas.width;
   this.layers = {};
-  this.layers['0'] = new BackGround(0, 400, 0, this.width, sceneStyle);
-  this.layers['1'] = new Layer(0, 400, 1, this.width, sceneStyle); 
+  var y = window.innerHeight * 0.9;
+  this.layers['0'] = new BackGround(0, y, 0, this.width, backGroundLayer);
+  this.layers['1'] = new Layer(0, y, 1, this.width, sceneStyleLayer1); 
+  this.layers['2'] = new Layer(0, y, 2, this.width, sceneStyleLayer2); 
+  this.layers['3'] = new Layer(0, y, 2, this.width, sceneStyleLayer2); 
 
   this.layers['1'].populate();
+  this.layers['2'].populate();
+  this.layers['3'].populate();
 
   this.draw = function draw() {
     for (layer in this.layers) {
