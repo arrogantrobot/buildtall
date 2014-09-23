@@ -188,7 +188,7 @@ function Scene(canvas) {
   this.layers['0'] = new BackGround(0, y, 0, this.width, backGroundLayer);
   this.layers['1'] = new Layer(0, y, 1, this.width, sceneStyleLayer1); 
   this.layers['2'] = new Layer(0, y, 2, this.width, sceneStyleLayer2); 
-  this.layers['3'] = new Layer(0, y, 2, this.width, sceneStyleLayer2); 
+  this.layers['3'] = new Layer(0, y, 2, this.width, sceneStyleLayer3); 
 
   this.layers['1'].populate();
   this.layers['2'].populate();
