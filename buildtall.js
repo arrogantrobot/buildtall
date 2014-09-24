@@ -11,31 +11,30 @@ var sceneStyleLayer1 = {
   "colorScheme"       : ["#ADA386", "#825F43", "#5F8076", "#402B1A", /*blue*/ "#3c3957", /*rust*/ "#92432b", /*olive*/ "#57633e"],
   "maxBuildings"      : 30,
   "minBuildings"      : 20,
-  "minBuildingWidth"  : 50,
-  "maxBuildingWidth"  : 300,
-  "numPoints"         : 50,
-  "minBuildingHeight" : 90,
-  "maxBuildingHeight" : 600,
+  "minBuildingWidth"  : 0.05,
+  "maxBuildingWidth"  : 0.1,
+  "minBuildingHeight" : 0.15,
+  "maxBuildingHeight" : 0.7,
 }
 
 var sceneStyleLayer2 = {  
   "colorScheme"       : ["#ADA386", "#825F43", "#5F8076", "#402B1A", /*blue*/ "#3c3957", /*rust*/ "#92432b", /*olive*/ "#57633e"],
   "maxBuildings"      : 40,
   "minBuildings"      : 20,
-  "minBuildingWidth"  : 30,
-  "maxBuildingWidth"  : 300,
-  "minBuildingHeight" : 50,
-  "maxBuildingHeight" : 300,
+  "minBuildingWidth"  : 0.05,
+  "maxBuildingWidth"  : 0.2,
+  "minBuildingHeight" : 0.0833,
+  "maxBuildingHeight" : 0.5,
 }
 
 var sceneStyleLayer3 = {  
   "colorScheme"       : ["#ADA386", "#825F43", "#5F8076", "#402B1A", /*blue*/ "#3c3957", /*rust*/ "#92432b", /*olive*/ "#57633e"],
   "maxBuildings"      : 50,
   "minBuildings"      : 40,
-  "minBuildingWidth"  : 30,
-  "maxBuildingWidth"  : 200,
-  "minBuildingHeight" : 30,
-  "maxBuildingHeight" : 50,
+  "minBuildingWidth"  : 0.025,
+  "maxBuildingWidth"  : 0.25,
+  "minBuildingHeight" : 0.07,
+  "maxBuildingHeight" : 0.1,
 }
 
 function getRandInt(lower, upper) {
@@ -120,11 +119,13 @@ function Layer(x, y, z, width, scheme) {
   }
 
   this.populate = function() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
     for (index = 0; index < this.scheme['maxBuildings']; ++index) {
       this.addBuilding(new Building(
             getRandInt(this.x, this.width),
-            getRandInt(this.scheme['minBuildingWidth'], this.scheme['maxBuildingWidth']), 
-            getRandInt(this.scheme['minBuildingHeight'], this.scheme['maxBuildingHeight']), 
+            getRandInt(this.scheme['minBuildingWidth'] * width, this.scheme['maxBuildingWidth'] * width), 
+            getRandInt(this.scheme['minBuildingHeight'] * height, this.scheme['maxBuildingHeight'] * height), 
             getRandArrayElem(this.scheme['colorScheme'])
       ));
       if (index > this.scheme['minBuildings']) {
@@ -132,32 +133,6 @@ function Layer(x, y, z, width, scheme) {
       }
     }
   }
-
-  this.populateSameDepth = function() {
-    var index;
-    var points = new Array();
-    for (index = 0; index < this.scheme['numPoints']; ++index) {
-      points.push(Math.floor((Math.random() * this.width) + this.x));
-    }
-    points.sort(function(a, b){return a-b});
-    index = 0;
-    while (index < points.length - 1) {
-      var left = points[index];
-      index++;
-      while ((points[index] - left) < this.scheme['minBuildingWidth']) {
-        index++;
-      }
-      if (index >= points.length) return;
-      this.addBuilding(new Building(
-            left, 
-            points[index] - left, 
-            Math.floor(Math.random() * this.scheme['maxBuildingHeight']) + this.scheme['minBuildingHeight'], 
-            this.scheme['colorScheme'][Math.floor(Math.random() * this.scheme['colorScheme'].length)]
-      ));
-      index++;
-    }
-  }
-
 }
 
 //A building represents all of the details associated with a single building
