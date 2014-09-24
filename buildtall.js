@@ -114,8 +114,8 @@ function Layer(x, y, z, width, scheme) {
   }
 
   this.draw = function(context) {
-    for (building of this.buildings) {
-      building.draw(context, this.x, this.y);
+    for (index = 0; index < this.buildings.length; ++index) {
+      this.buildings[index].draw(context, this.x, this.y);
     }
   }
 
