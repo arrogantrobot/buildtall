@@ -1,3 +1,11 @@
+/*  Buildtall Cities
+ *  Change the speed of redraw by placing the following at the end of the buildtall.com url ?speed=<milliseconds>
+ *
+ *
+ *
+ */
+
+
 var backGroundLayer = {
   'bgColorOne'        : "#443322",
   'bgColorTwo'        : "#613d30",
@@ -39,6 +47,17 @@ var sceneStyleLayer3 = {
 
 function getRandInt(lower, upper) {
   return Math.floor((Math.random() * upper) + lower);
+}
+
+function getRandFloat(lower, upper) {
+  return (Math.random() * upper) + lower;
+}
+
+function getRandMinMax(param, scheme) {
+  var minP = "min"+param;
+  var maxP = "max"+param;
+  var answer = getRandFloat(scheme[minP],scheme[maxP]);
+  return answer;
 }
 
 function getRandArrayElem(array) {
@@ -124,8 +143,10 @@ function Layer(x, y, z, width, scheme) {
     for (index = 0; index < this.scheme['maxBuildings']; ++index) {
       this.addBuilding(new Building(
             getRandInt(this.x, this.width),
-            getRandInt(this.scheme['minBuildingWidth'] * width, this.scheme['maxBuildingWidth'] * width), 
-            getRandInt(this.scheme['minBuildingHeight'] * height, this.scheme['maxBuildingHeight'] * height), 
+            getRandMinMax("BuildingWidth", this.scheme) * width,
+            getRandMinMax("BuildingHeight", this.scheme) * height,
+            //getRandInt(this.scheme['minBuildingWidth'] * width, this.scheme['maxBuildingWidth'] * width), 
+            //getRandInt(this.scheme['minBuildingHeight'] * height, this.scheme['maxBuildingHeight'] * height), 
             getRandArrayElem(this.scheme['colorScheme'])
       ));
       if (index > this.scheme['minBuildings']) {
@@ -144,7 +165,6 @@ function Building(x, width, height, color) {
 
   this.draw = function(context, x, y) {
     var style = context.fillStyle;
-    console.log(this.x_loc + " " + this.width_loc + " " + this.color);
     context.fillStyle = this.color;
     context.fillRect(this.x_loc + x, y, this.width_loc, -1 * this.height);
     context.fillStyle = style;
@@ -176,7 +196,49 @@ function Scene(canvas) {
   }
 }
 
-function start(canvas) {
+// This function copied whole-cloth from http://www.abeautifulsite.net/parsing-urls-in-javascript/
+function parseURL(url) {
+
+  var parser = document.createElement('a'),
+    searchObject = {},
+    queries, split, i;
+
+  // Let the browser do the work
+  parser.href = url;
+
+  // Convert query string to object
+  queries = parser.search.replace(/^\?/, '').split('&');
+  for( i = 0; i < queries.length; i++ ) {
+    split = queries[i].split('=');
+    searchObject[split[0]] = split[1];
+  }
+
+  return {
+    protocol: parser.protocol,
+    host: parser.host,
+    hostname: parser.hostname,
+    port: parser.port,
+    pathname: parser.pathname,
+    search: parser.search,
+    searchObject: searchObject,
+    hash: parser.hash
+  };
+
+}
+
+function newCity(canvas) {
   var bt = new Scene(canvas);
-  bt.draw();
+  bt.draw(); 
+}
+
+function start(canvas) {
+  var so  = parseURL(document.URL);
+  var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 1000;
+  newCity(canvas);
+  setInterval(
+    function () {
+      newCity(canvas);
+    },
+    speed
+  );
 }
