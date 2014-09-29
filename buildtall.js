@@ -23,6 +23,19 @@ var sceneStyleLayer1 = {
   "maxBuildingWidth"  : 0.1,
   "minBuildingHeight" : 0.15,
   "maxBuildingHeight" : 0.7,
+  "windows"           : {
+      'number'        : 4,
+      'group_size'    : 5,
+      'orientation'   : 'updown',
+      'toporbottom'   : 'top',
+      'leftright'     : 'right',
+      'min_x'         : 0.10,
+      'max_x'         : 0.90,
+      'min_y'         : 0.50,
+      'max_y'         : 0.90,
+      'lites_out'     : 0.20,
+  },
+
 }
 
 var sceneStyleLayer2 = {  
@@ -30,9 +43,21 @@ var sceneStyleLayer2 = {
   "maxBuildings"      : 40,
   "minBuildings"      : 20,
   "minBuildingWidth"  : 0.05,
-  "maxBuildingWidth"  : 0.2,
+  "maxBuildingWidth"  : 0.15,
   "minBuildingHeight" : 0.0833,
   "maxBuildingHeight" : 0.5,
+  "windows"           : {
+      'number'        : 2,
+      'group_size'    : 4,
+      'orientation'   : 'updown',
+      'toporbottom'   : 'top',
+      'leftright'     : 'right',
+      'min_x'         : 0.10,
+      'max_x'         : 0.90,
+      'min_y'         : 0.50,
+      'max_y'         : 0.90,
+      'lites_out'     : 0.20,
+  },
 }
 
 var sceneStyleLayer3 = {  
@@ -43,6 +68,18 @@ var sceneStyleLayer3 = {
   "maxBuildingWidth"  : 0.25,
   "minBuildingHeight" : 0.07,
   "maxBuildingHeight" : 0.1,
+  "windows"           : {
+      'number'        : 3,
+      'group_size'    : 2,
+      'orientation'   : 'updown',
+      'toporbottom'   : 'top',
+      'leftright'     : 'right',
+      'min_x'         : 0.10,
+      'max_x'         : 0.90,
+      'min_y'         : 0.50,
+      'max_y'         : 0.90,
+      'lites_out'     : 0.20,
+  },
 }
 
 function getRandInt(lower, upper) {
@@ -50,7 +87,7 @@ function getRandInt(lower, upper) {
 }
 
 function getRandFloat(lower, upper) {
-  return (Math.random() * upper) + lower;
+  return (Math.random() * (upper - lower)) + lower;
 }
 
 function getRandMinMax(param, scheme) {
@@ -62,6 +99,24 @@ function getRandMinMax(param, scheme) {
 
 function getRandArrayElem(array) {
   return array[Math.floor((Math.random() * array.length))];
+}
+
+function getRandBool(true_bias) {
+  var bias = 0.5;
+  if(true_bias) {
+    bias = true_bias;
+  }
+  return Math.random() <= bias;
+}
+
+//shadeColor function taken from http://stackoverflow.com/a/13542669/135703
+function shadeColor(color, percent) {  
+    var num = parseInt(color.slice(1),16),
+    amt = Math.round(2.55 * percent),
+    R = (num >> 16) + amt,
+    G = (num >> 8 & 0x00FF) + amt,
+    B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
 }
 
 // drawEllipse function taken from http://www.williammalone.com/briefs/how-to-draw-ellipse-html5-canvas/
@@ -133,7 +188,7 @@ function Layer(x, y, z, width, scheme) {
 
   this.draw = function(context) {
     for (index = 0; index < this.buildings.length; ++index) {
-      this.buildings[index].draw(context, this.x, this.y);
+      this.buildings[index].draw(context, this.scheme, this.x, this.y);
     }
   }
 
@@ -145,8 +200,6 @@ function Layer(x, y, z, width, scheme) {
             getRandInt(this.x, this.width),
             getRandMinMax("BuildingWidth", this.scheme) * width,
             getRandMinMax("BuildingHeight", this.scheme) * height,
-            //getRandInt(this.scheme['minBuildingWidth'] * width, this.scheme['maxBuildingWidth'] * width), 
-            //getRandInt(this.scheme['minBuildingHeight'] * height, this.scheme['maxBuildingHeight'] * height), 
             getRandArrayElem(this.scheme['colorScheme'])
       ));
       if (index > this.scheme['minBuildings']) {
@@ -162,12 +215,61 @@ function Building(x, width, height, color) {
   this.width_loc = width;
   this.height = height;
   this.color = color;
+  this.color_lite = shadeColor(color, 20);
 
-  this.draw = function(context, x, y) {
+  this.drawWindows = function(context, scheme, x, y) {
+    var winx = this.x_loc + x;
+    var rf = getRandFloat(
+        scheme['windows']['min_y'],
+        scheme['windows']['max_y']
+    );
+    var winy = y - (this.height * rf);
+    winx += this.width_loc * getRandFloat(
+        scheme['windows']['min_x'],
+        scheme['windows']['max_x']
+    );
+    var index = 0;
+    var style = context.fillStyle;
+    for (index = 0; index < scheme['windows']['group_size']; index++) {
+      if (scheme['windows']['lites_out'] > Math.random()) {
+        winy += 15;
+        continue;
+      }
+      if (winy + 10 > y) {
+        break;
+      }
+      context.fillStyle = this.color_lite;
+      context.fillRect(winx, winy, 5, 10);
+      winy += 15;
+    }
+    context.fillStyle = style;
+  }
+
+  this.drawHighlights = function(context, scheme, x, y) {
+    var hwide = 2;
+    var hgrad = context.createLinearGradient(this.x_loc + x, y - this.height, this.width_loc, hwide);
+    hgrad.addColorStop(0, this.color);
+    hgrad.addColorStop(1, this.color_lite);
+    context.fillStyle = this.color_lite;
+    context.fillRect(this.x_loc + x, y - this.height, this.width_loc, -1 * hwide);
+    
+    var vgrad = context.createLinearGradient(this.x_loc + x + this.width_loc - hwide, y - this.height, hwide, y);
+    vgrad.addColorStop(0, this.color);
+    vgrad.addColorStop(1, this.color_lite);
+    context.fillStyle = this.color_lite;
+    context.fillRect(this.x_loc + x + this.width_loc - hwide, y - this.height, hwide, this.height);
+  }
+  
+  this.draw = function(context, scheme, x, y) {
     var style = context.fillStyle;
     context.fillStyle = this.color;
     context.fillRect(this.x_loc + x, y, this.width_loc, -1 * this.height);
     context.fillStyle = style;
+    var index;
+    for (index = 0; index < scheme['windows']['number']; index++) {
+      this.drawWindows(context, scheme, x, y);
+    }
+    this.drawHighlights(context, scheme, x, y);
   }
 }
 
