@@ -24,6 +24,9 @@ var sceneStyleLayer1 = {
   "minBuildingHeight" : 0.15,
   "maxBuildingHeight" : 0.7,
   "windows"           : {
+      'width'         : 5,
+      'height'        : 10,
+      'v_space'       : 15,
       'number'        : 4,
       'group_size'    : 5,
       'orientation'   : 'updown',
@@ -47,6 +50,9 @@ var sceneStyleLayer2 = {
   "minBuildingHeight" : 0.0833,
   "maxBuildingHeight" : 0.5,
   "windows"           : {
+      'width'         : 5,
+      'height'        : 10,
+      'v_space'       : 15,
       'number'        : 2,
       'group_size'    : 4,
       'orientation'   : 'updown',
@@ -69,7 +75,10 @@ var sceneStyleLayer3 = {
   "minBuildingHeight" : 0.07,
   "maxBuildingHeight" : 0.1,
   "windows"           : {
-      'number'        : 3,
+      'width'         : 5,
+      'height'        : 5,
+      'v_space'       : 10,
+      'number'        : 5,
       'group_size'    : 2,
       'orientation'   : 'updown',
       'toporbottom'   : 'top',
@@ -239,8 +248,8 @@ function Building(x, width, height, color) {
         break;
       }
       context.fillStyle = this.color_lite;
-      context.fillRect(winx, winy, 5, 10);
-      winy += 15;
+      context.fillRect(winx, winy, scheme['windows']['width'], scheme['windows']['height']);
+      winy += scheme['windows']['v_space'];
     }
     context.fillStyle = style;
   }
