@@ -71,7 +71,7 @@ var sceneStyleLayer3 = {
   "maxBuildings"      : 50,
   "minBuildings"      : 40,
   "minBuildingWidth"  : 0.025,
-  "maxBuildingWidth"  : 0.25,
+  "maxBuildingWidth"  : 0.15,
   "minBuildingHeight" : 0.07,
   "maxBuildingHeight" : 0.1,
   "windows"           : {
@@ -344,7 +344,7 @@ function newCity(canvas) {
 
 function start(canvas) {
   var so  = parseURL(document.URL);
-  var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 1000;
+  var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 5000;
   newCity(canvas);
   setInterval(
     function () {
