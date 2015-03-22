@@ -195,6 +195,10 @@ function Layer(x, y, z, width, scheme) {
     this.buildings.push(building);
   }
 
+  this.removeBuilding = function() {
+    this.buildings.pop()
+  }
+
   this.draw = function(context) {
     for (index = 0; index < this.buildings.length; ++index) {
       this.buildings[index].draw(context, this.scheme, this.x, this.y);
@@ -337,18 +341,27 @@ function parseURL(url) {
 
 }
 
-function newCity(canvas) {
-  var bt = new Scene(canvas);
-  bt.draw(); 
+function SpaceTime(canvas)
+  this.canvas = canvas;
+  this.scene = "";
+  this.newCity = function() {
+    this.scene = new Scene(this.canvas);
+    this.scene.draw(); 
+  }
+  this.updateCity = function() {
+    this.newCity()    
+  }
 }
+
 
 function start(canvas) {
   var so  = parseURL(document.URL);
   var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 5000;
-  newCity(canvas);
+  var spaceTime = new SpaceTime(canvas);
+  spaceTime.newCity(canvas);
   setInterval(
     function () {
-      newCity(canvas);
+      spaceTime.updateCity();
     },
     speed
   );
