@@ -1,4 +1,3 @@
 #!/bin/bash
 
-sudo cp test.html /var/www/buildtall.com/public/index.html
-sudo cp buildtall.js /var/www/buildtall.com/public/
+aws s3 sync . s3://buildtall.com --exclude ".*/*" --exclude "*.sw?" --exclude ".DS_Store" --exclude ".gitignore"
