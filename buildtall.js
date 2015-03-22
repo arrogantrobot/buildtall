@@ -196,7 +196,7 @@ function Layer(x, y, z, width, scheme) {
   }
 
   this.removeBuilding = function() {
-    this.buildings.pop()
+    this.buildings.shift()
   }
 
   this.draw = function(context) {
@@ -205,10 +205,14 @@ function Layer(x, y, z, width, scheme) {
     }
   }
 
-  this.populate = function() {
+  this.populateFromScheme = function(){
+    this.populate(this.scheme['maxBuildings']);
+  }
+
+  this.populate = function(numBuildings) {
     var width = window.innerWidth;
     var height = window.innerHeight;
-    for (index = 0; index < this.scheme['maxBuildings']; ++index) {
+    for (index = 0; index < numBuildings ; ++index) {
       this.addBuilding(new Building(
             getRandInt(this.x, this.width),
             getRandMinMax("BuildingWidth", this.scheme) * width,
@@ -300,14 +304,24 @@ function Scene(canvas) {
   this.layers['2'] = new Layer(0, y, 2, this.width, sceneStyleLayer2); 
   this.layers['3'] = new Layer(0, y, 2, this.width, sceneStyleLayer3); 
 
-  this.layers['1'].populate();
-  this.layers['2'].populate();
-  this.layers['3'].populate();
+  this.layers['1'].populateFromScheme();
+  this.layers['2'].populateFromScheme();
+  this.layers['3'].populateFromScheme();
 
   this.draw = function draw() {
     for (layer in this.layers) {
       this.layers[layer].draw(this.context);
     }
+  }
+
+  this.updateScene = function() {
+    this.layers['1'].populate(1);
+    this.layers['2'].populate(1);
+    this.layers['3'].populate(1);
+    this.layers['1'].removeBuilding(1);
+    this.layers['2'].removeBuilding(1);
+    this.layers['3'].removeBuilding(1);
+    this.draw();
   }
 }
 
@@ -341,7 +355,7 @@ function parseURL(url) {
 
 }
 
-function SpaceTime(canvas)
+function SpaceTime(canvas) {
   this.canvas = canvas;
   this.scene = "";
   this.newCity = function() {
@@ -349,14 +363,14 @@ function SpaceTime(canvas)
     this.scene.draw(); 
   }
   this.updateCity = function() {
-    this.newCity()    
+    this.scene.updateScene()    
   }
 }
 
 
 function start(canvas) {
   var so  = parseURL(document.URL);
-  var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 5000;
+  var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 500;
   var spaceTime = new SpaceTime(canvas);
   spaceTime.newCity(canvas);
   setInterval(
