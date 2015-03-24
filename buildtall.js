@@ -189,6 +189,7 @@ function Layer(x, y, z, width, scheme) {
   this.y = typeof y !== 'undefined' ? y : 0;
   this.scheme = scheme;
   this.buildings = new Array();
+  this.numUpdates = 0
 
 
   this.addBuilding = function(building) {
@@ -209,12 +210,16 @@ function Layer(x, y, z, width, scheme) {
     this.populate(this.scheme['maxBuildings']);
   }
 
+  this.shiftLeft = function(dx){
+    this.x -= dx;
+  }
+
   this.populate = function(numBuildings) {
     var width = window.innerWidth;
     var height = window.innerHeight;
     for (index = 0; index < numBuildings ; ++index) {
       this.addBuilding(new Building(
-            getRandInt(this.x, this.width),
+            getRandInt(Math.abs(this.x), this.width),
             getRandMinMax("BuildingWidth", this.scheme) * width,
             getRandMinMax("BuildingHeight", this.scheme) * height,
             getRandArrayElem(this.scheme['colorScheme'])
@@ -223,6 +228,18 @@ function Layer(x, y, z, width, scheme) {
         if (getRandInt(1,4) > 3) return;
       }
     }
+  }
+
+  this.updateLayer = function(populate, remove, shift) {
+    var populate = typeof populate !== 'undefined' ? populate : 1;
+    var remove= typeof remove!== 'undefined' ? remove: 1;
+    var shift= typeof shift!== 'undefined' ? shift: 1;
+
+    this.populate(populate);
+    this.removeBuilding(remove);
+    this.shiftLeft(shift);
+  
+    this.numUpdates++;
   }
 }
 
@@ -298,6 +315,7 @@ function Scene(canvas) {
   this.context = canvas.getContext('2d');
   this.width = canvas.width;
   this.layers = {};
+  this.drawCount = 0;
   var y = window.innerHeight * 0.9;
   this.layers['0'] = new BackGround(0, y, 0, this.width, backGroundLayer);
   this.layers['1'] = new Layer(0, y, 1, this.width, sceneStyleLayer1); 
@@ -312,15 +330,15 @@ function Scene(canvas) {
     for (layer in this.layers) {
       this.layers[layer].draw(this.context);
     }
+    this.drawCount ++;
   }
 
   this.updateScene = function() {
-    this.layers['1'].populate(1);
-    this.layers['2'].populate(1);
-    this.layers['3'].populate(1);
-    this.layers['1'].removeBuilding(1);
-    this.layers['2'].removeBuilding(1);
-    this.layers['3'].removeBuilding(1);
+
+    this.layers['1'].updateLayer(1,1,1);
+    this.layers['2'].updateLayer(1,1,4);
+    this.layers['3'].updateLayer(1,1,9);
+
     this.draw();
   }
 }
@@ -370,7 +388,7 @@ function SpaceTime(canvas) {
 
 function start(canvas) {
   var so  = parseURL(document.URL);
-  var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 500;
+  var speed = so.searchObject['speed'] ? parseInt(so.searchObject['speed']) : 50;
   var spaceTime = new SpaceTime(canvas);
   spaceTime.newCity(canvas);
   setInterval(
